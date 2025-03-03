@@ -1,6 +1,7 @@
-def movimentacao(x, y):
-    x.append(y)
-    return x
+def movimentacao(transacao, valor_adicionado, nivelador_extrato):
+    transacao.append(valor_adicionado)
+    nivelador_extrato.append(0)
+    return transacao
  
 recepcao = '''Olá, seja bem-vindo ao Sistema Bancário Valjr-py!
 -------------------------------------------------
@@ -19,8 +20,7 @@ LIMITE_SAQUE = 500
 while True:
     saldo_da_conta = float(sum(depositos))-float(sum(saques))
 
-    print(recepcao)
-    acao_usuario = input().lower()
+    acao_usuario = input(f'{recepcao}\n').lower()
 
     if acao_usuario == 's':
         if saque_diario <= 0:
@@ -32,17 +32,19 @@ while True:
             valor = input('Saldo a ser sacado: ')
             try:
                 valor = float(valor)
-                if saldo_da_conta - valor < 0:
-                    print('Você não tem saldo suficiente.')
-                    continue
-                if valor > LIMITE_SAQUE:
-                    print('Você só pode fazer saques de até R$ 500,00.')
-                    continue
             except ValueError:
                 print('Informe um saque válido.')
                 continue
-            valor_saida = movimentacao(x=saques, y=valor)
-            depositos.append(0)
+            if saldo_da_conta - valor < 0:
+                print('Você não tem saldo suficiente.')
+                continue
+            elif valor > LIMITE_SAQUE:
+                print('Você só pode fazer saques de até R$ 500,00.')
+                continue
+            elif valor < 0:
+                print('Saque um valor positivo.')
+                continue
+            movimentacao(transacao=saques, valor_adicionado=valor, nivelador_extrato=depositos)
             print(f'Você sacou R$ {valor:.2f} da conta.\n')
             saque_diario -= 1
             break
@@ -55,8 +57,10 @@ while True:
             except ValueError:
                 print('Informe um depósito válido.')
                 continue
-            valor_saida = movimentacao(x=depositos, y=valor)
-            saques.append(0)
+            if valor < 0:
+                print('Deposite um valor positivo.')
+                continue
+            movimentacao(transacao=depositos, valor_adicionado=valor, nivelador_extrato=saques)
             print(f'Você depositou R$ {valor:.2f} na conta.\n')
             break
 
@@ -76,3 +80,10 @@ while True:
     else:
         print('Informe uma opção válida.\n')
         continue
+
+    # coloquei a recepção dentro do input
+    # limitei a não depositar valores negativos
+    # removi uma variável desnecessária
+    # mudei a posição do tratamento de exceção, caso o usuário digite algum dígito diferente de um número na variável valor
+    # deixei os parâmetros das funções mais descritivos
+    # limitei a não sacar valores negativos
