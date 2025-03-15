@@ -10,56 +10,68 @@ def extrato(transacoes, hora):
     print('\n',21*'=', 'EXTRATO', 21*'=')
     historico = ''
     for movimento in transacoes:
-        historico += f'{hora[i]}\tSaque: R$ {(transacoes[i]*-1):.2f}' if transacoes[i] < 0 else f'{hora[i]}\tDepósito: R$ {transacoes[i]:.2f}\n'
+        historico += f'{hora[i]}\tSaque: R$ {(transacoes[i]*-1):.2f}\n' if transacoes[i] < 0 else f'{hora[i]}\tDepósito: R$ {transacoes[i]:.2f}\n'
         i += 1
-    return historico
+    print(historico)
 
-def saque(limite_diario, saque_diario, limite_saque):
+def saque(numero_saque_diario, limite_saque, saldo, numero_transacoes_diaria):
+                
         while True:
-            if saque_diario <= 0:
-                print('Você excedeu o limite de saques diários. Tente novamente amanhã.\n')
-                continue
-
-            while limite_diario > 0:
-            
-                valor = input('valor a ser sacado: ')
-                try:
-                    valor = float(valor)
-                except ValueError:
-                    print('Informe um saque válido.')
-                    continue
-                if saldo_da_conta - valor < 0:
-                    print('Você não tem saldo suficiente.')
-                    continue
-                elif valor > limite_saque:
-                    print('Você só pode fazer saques de até R$ 500,00.')
-                    continue
-                elif valor < 0:
-                    print('Saque um valor positivo.')
-                    continue
-                movimentacao(transacao=transacoes, valor_adicionado=valor*(-1), hora=hora)
-                print(f'Você sacou R$ {valor:.2f} da conta.\n')
-                saque_diario -= 1
-                limite_diario -= 1
+            if saldo <= 0:
+                print('Você não tem saldo a ser sacado.\n')
                 break
-            return valor
+
+            else:
+                while True:
+                    if numero_saque_diario <= 0:
+                        print('Você excedeu o limite de saques diários. Tente novamente amanhã.\n')
+                        break
+                    valor = input('valor a ser sacado: ')
+                    try:
+                        valor = float(valor)                       
+                    except ValueError:
+                        print('Informe um saque válido.\n')
+                        continue
+                    
+                    if valor == 0:
+                        print('Você não pode sacar R$ 0.00 da conta.\n')
+                        break
+                    elif saldo_da_conta - valor < 0:
+                        print('Você não tem saldo suficiente.\n')
+                        continue
+                    elif valor > limite_saque:
+                        print('Você só pode fazer saques de até R$ 500,00.\n')
+                        continue
+                    elif valor < 0:
+                        print('Saque um valor positivo.\n')
+                        continue
+                    else:
+                        movimentacao(transacao=transacoes, valor_adicionado=valor*(-1), hora=hora)
+                        print(f'Você sacou R$ {valor:.2f} da conta.\n')
+                        numero_saque_diario -= 1
+                        numero_transacoes_diaria -= 1
+                    break
+                break
+        return numero_saque_diario, numero_transacoes_diaria
+
+            
 
 def deposito(limite_diario):
-    while limite_diario > 0:
+    while True:
         valor = input('Valor a ser depositado: ')
         try:
             valor = float(valor)
         except ValueError:
-            print('Informe um depósito válido.')
+            print('Informe um depósito válido.\n')
             continue
         if valor < 0:
-            print('Deposite um valor positivo.')
+            print('Deposite um valor positivo.\n')
             continue
         movimentacao(transacao=transacoes, valor_adicionado=valor, hora=hora)
         print(f'Você depositou R$ {valor:.2f} na conta.\n')
         limite_diario -= 1
         break
-    return valor
+    return limite_diario
 
 def criar_usuario(usuarios):
     CPF = input('Informe seu CPF:\n=> ')
@@ -85,7 +97,7 @@ def criar_conta(agencia, numero_da_conta, usuarios):
     if usuario:
         print('Conta criada com sucesso!')
         return {'agencia': agencia, 'numero_da_conta': numero_da_conta, 'usuario': usuario} 
-    print('!!! Usuário não encontrado !!!')
+    print('!!! Usuário não encontrado !!!\n')
 
 def listar_contas(contas):
     for conta in contas:
@@ -111,30 +123,32 @@ usuarios = []
 transacoes = []
 hora = []
 contas = []
-saque_diario = 3
 LIMITE_SAQUE = 500
 AGENCIA = '0001'
 limite_transacoes_diaria = 10
+saque_diario = 3
 
 while True:
+
     saldo_da_conta = float(sum(transacoes))
     acao_usuario = input(f'{recepcao}\n=> ').lower()
 
-    if limite_transacoes_diaria < 1:
-        print('Você não pode mais fazer transações. Tente  novamente amanhã.')
+    if acao_usuario == 's' and limite_transacoes_diaria <= 0 or acao_usuario == 'd' and limite_transacoes_diaria <= 0:
+        print('Você não pode mais fazer transações. Tente  novamente amanhã.\n')
         continue
 
     if acao_usuario == 's':
-        saque(limite_transacoes_diaria, limite_transacoes_diaria , LIMITE_SAQUE)
+        saque_diario, limite_transacoes_diaria = saque(saque_diario, LIMITE_SAQUE, saldo_da_conta, limite_transacoes_diaria)
+
 
     elif acao_usuario == 'd':
-        deposito(limite_diario=limite_transacoes_diaria)
+        limite_transacoes_diaria = deposito(limite_diario=limite_transacoes_diaria)
 
     elif acao_usuario == 'e':
         if not transacoes:
             print(f'Você não fez nenhuma movimentação ainda.\n')
         else:
-            print(extrato(transacoes=transacoes, hora=hora))
+            extrato(transacoes=transacoes, hora=hora)
             print(f'\nSaldo: R$ {saldo_da_conta:.2f}\n',51*'=','\n')
     
     elif acao_usuario == 'c':
